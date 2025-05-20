@@ -1,0 +1,33 @@
+# .github/workflows/post-format-checks.yml
+name: Post-format checks
+
+on:
+  workflow_run:
+    workflows: ["Auto-format with Qlty"]
+    types: [completed]
+
+jobs:
+  fmt-check:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    name: fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check formatting
+        run: qlty check        # or however you do your fmt-only check
+
+  tests:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run tests
+        run: npm test
+
+  docs:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build & Publish Site + API Docs
+        run: ./scripts/build-and-publish-docs.sh
