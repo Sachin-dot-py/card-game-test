@@ -1,21 +1,26 @@
-# .github/workflows/format.yml
 name: Auto-format with Qlty
 
 on:
-  pull_request:
+  push:
     branches: [ main ]
+
+permissions:
+  contents: write
 
 jobs:
   fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Install Qlty CLI
         uses: qltysh/qlty-action/install@v1
 
       - name: Run qlty fmt
         uses: qltysh/qlty-action/fmt@v1
+        # (optional) with:
+        #   all: true
 
       - name: Commit formatted code
         uses: stefanzweifel/git-auto-commit-action@v4
