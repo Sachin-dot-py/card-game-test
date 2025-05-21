@@ -1,47 +1,43 @@
-name: Auto-format with Qlty
+name: Unit Tests # name of the test
 
-permissions:
-  contents: write       # needed for normal git operations
+on: [push] # the Github Action will activate "on" the event that you "push" to the repo
 
-on:
-  push:
-    branches:
-      - main      # or whichever branches you want
-  pull_request:
-    branches:
-      - main      # or whichever branches you want
-
-jobs:
-  fmt:
-    runs-on: ubuntu-latest
-
+jobs: # the things being executed
+  tests: # the name of your status check, will become important when you do branch protection
+    runs-on: ubuntu-latest # which device on Github's server that you are running the Actions on
     steps:
-      # 1. Check out the code
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Install Dependencies
+        run: npm install
+      - name: Unit Test
+        run: npm test ./__tests__/pseudo.tests.js # the actual testing line
 
-      # 2. Install Qlty CLI (via the official installer action)
-      - name: Install Qlty CLI
-        uses: qltysh/qlty-action/install@v1
-        # (no inputs required—this will curl & install the latest binary)  [oai_citation:0‡GitHub](https://github.com/qltysh/qlty-action)
+  docs:
+    name: Build & Publish Site + API Docs
+    runs-on: ubuntu-latest
+    needs: tests
+    steps:
+      # 1) grab your repo
+      - uses: actions/checkout@v4
 
-      # 3. Run auto-formatting
-      - name: Run qlty fmt
-        uses: qltysh/qlty-action/fmt@v1
-        # with:
-          # By default this will only format files changed in the diff.
-          # To format the whole repo, uncomment the line below:
-          # all: true
-          #
-          # You can also filter by plugin, path, etc.—see the Qlty docs for more flags  [oai_citation:1‡docs.qlty.sh](https://docs.qlty.sh/cli/commands/fmt?utm_source=chatgpt.com)
-
-      # 4. Commit & push any formatting changes
-      - name: Commit formatted code
-        uses: stefanzweifel/git-auto-commit-action@v4
+      # 2) ensure Node (and your deps) are installed
+      - uses: actions/setup-node@v3
         with:
-          # Customize your commit message
-          commit_message: "chore: apply Qlty auto-formatting"
-          # Only commit if there are changes
-          file_pattern: |
-            **/*
-            !.github/workflows/**
+          node-version: "18"
+      - name: Install dependencies
+        run: npm ci
+
+      # 3) generate your JSDoc into docs/docs
+      - name: Generate API docs
+        run: npx jsdoc -c jsdoc.json -r -d docs/docs website/js
+
+      # 4) copy the static site into docs root
+      - name: Copy sample site
+        run: cp -R website/* docs/
+
+      # 5) push the entire docs/ folder to gh-pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
