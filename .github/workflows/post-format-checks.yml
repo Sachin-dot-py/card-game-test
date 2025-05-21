@@ -1,87 +1,47 @@
-name: Post-format checks
+name: Auto-format with Qlty
+
+permissions:
+  contents: write       # needed for normal git operations
 
 on:
-  workflow_run:
-    workflows: ["Auto-format with Qlty"]
-    types: [completed]
+  push:
+    branches:
+      - main      # or whichever branches you want
+  pull_request:
+    branches:
+      - main      # or whichever branches you want
 
 jobs:
   fmt:
-    name: fmt
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout PR commit
+      # 1. Check out the code
+      - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          repository: ${{ github.event.workflow_run.head_repository.full_name }}
-          ref:        ${{ github.event.workflow_run.head_sha }}
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
-      - name: Install dependencies
-        run: npm ci
-
+      # 2. Install Qlty CLI (via the official installer action)
       - name: Install Qlty CLI
         uses: qltysh/qlty-action/install@v1
+        # (no inputs required—this will curl & install the latest binary)  [oai_citation:0‡GitHub](https://github.com/qltysh/qlty-action)
 
-      - name: Check formatting
-        run: qlty check
+      # 3. Run auto-formatting
+      - name: Run qlty fmt
+        uses: qltysh/qlty-action/fmt@v1
+        # with:
+          # By default this will only format files changed in the diff.
+          # To format the whole repo, uncomment the line below:
+          # all: true
+          #
+          # You can also filter by plugin, path, etc.—see the Qlty docs for more flags  [oai_citation:1‡docs.qlty.sh](https://docs.qlty.sh/cli/commands/fmt?utm_source=chatgpt.com)
 
-  tests:
-    name: tests
-    needs: fmt
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout PR commit
-        uses: actions/checkout@v3
+      # 4. Commit & push any formatting changes
+      - name: Commit formatted code
+        uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          repository: ${{ github.event.workflow_run.head_repository.full_name }}
-          ref:        ${{ github.event.workflow_run.head_sha }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Unit Test
-        run: npm test ./__tests__/pseudo.tests.js
-
-  docs:
-    name: docs
-    needs: [fmt, tests]
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout PR commit
-        uses: actions/checkout@v3
-        with:
-          repository: ${{ github.event.workflow_run.head_repository.full_name }}
-          ref:        ${{ github.event.workflow_run.head_sha }}
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Generate API docs
-        run: npx jsdoc -c jsdoc.json -r -d docs/docs website/js
-
-      - name: Copy sample site
-        run: cp -R website/* docs/
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          # Customize your commit message
+          commit_message: "chore: apply Qlty auto-formatting"
+          # Only commit if there are changes
+          file_pattern: |
+            **/*
+            !.github/workflows/**
