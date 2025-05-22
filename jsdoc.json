@@ -2,7 +2,7 @@
   "tags": {
 "allowUnknownTags": true
   },
-  "source": {
+"source": {
     "include": ["website/js"],
     "excludePattern": "(^|\\/|\\\\)_"
   },
