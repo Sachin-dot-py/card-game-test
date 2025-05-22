@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   qlty-fmt:
-    name: Apply Qlty formatting
+    name: fmt
     runs-on: ubuntu-latest
 
     steps:
