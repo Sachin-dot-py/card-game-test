@@ -1,19 +1,21 @@
+# .github/workflows/pr-ci.yml
 name: PR CI
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 permissions:
   contents: read
 
 jobs:
   tests:
-    name: tests
+    name: 🧪 Run tests
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
