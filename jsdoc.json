@@ -3,7 +3,7 @@
 "allowUnknownTags": true
   },
   "source": {
-    "include": ["website/js"],
+"include": ["website/js"],
     "excludePattern": "(^|\\/|\\\\)_"
   },
   "opts": {
