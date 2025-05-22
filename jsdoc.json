@@ -1,6 +1,6 @@
 {
   "tags": {
-    "allowUnknownTags": true
+"allowUnknownTags": true
   },
   "source": {
     "include": ["website/js"],
