@@ -2,9 +2,9 @@
   "tags": {
 "allowUnknownTags": true
   },
-  "source": {
-    "include": ["website/js"],
-    "excludePattern": "(^|\\/|\\\\)_"
+"source": {
+  "include": ["website/js"],
+     "excludePattern": "(^|\\/|\\\\)_"
   },
   "opts": {
     "destination": "docs/docs",
