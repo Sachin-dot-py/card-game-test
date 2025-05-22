@@ -1,5 +1,5 @@
 # .github/workflows/pr-ci.yml
-name: PR CI
+name: Unit Tests
 
 on:
   pull_request:
