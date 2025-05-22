@@ -1,5 +1,5 @@
 # .github/workflows/format-docs.yml
-name: Build & Publish Docs
+name: Build Website & Deploy Docs
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   docs:
-    name: 📚 Build & Deploy Docs
+    name: build
     runs-on: ubuntu-latest
 
     steps:
