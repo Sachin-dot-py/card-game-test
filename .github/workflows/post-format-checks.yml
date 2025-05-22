@@ -1,56 +1,39 @@
-name: Format & Docs
+# .github/workflows/pr-fmt.yml
+name: PR Auto-Format
 
 on:
-  push:
-    branches:
-      - main
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [ main ]
 
 permissions:
   contents: write
 
 jobs:
-  fmt:
-    name: qlty fmt
+  qlty-fmt:
+    name: Apply Qlty formatting
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout PR branch
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.FORMATTER_PAT }}
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Install Qlty CLI
         uses: qltysh/qlty-action/install@v1
 
-      - name: Run qlty fmt
+      - name: Run Qlty fmt
         uses: qltysh/qlty-action/fmt@v1
 
-      - name: Commit formatted code
+      - name: Commit formatting changes
         uses: stefanzweifel/git-auto-commit-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.FORMATTER_PAT }}
         with:
           commit_message: "chore: apply Qlty auto-formatting"
           file_pattern: |
             **/*
             !.github/workflows/**
-
-  docs:
-    name: Build & Publish Docs
-    needs: fmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Generate API docs
-        run: npx jsdoc -c jsdoc.json -r -d docs/docs website/js
-
-      - name: Copy sample site
-        run: cp -R website/* docs/
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
